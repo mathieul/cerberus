@@ -3,7 +3,7 @@ $LOAD_PATH.unshift File.expand_path("../app", __FILE__)
 
 require "rubygems"
 require "bundler"
-Bundler.setup
+Bundler.setup :default, :runtime
 
 require "useful_stuff"
 UsefulStuff.setup

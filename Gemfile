@@ -7,10 +7,11 @@ gem "activesupport",    "~> 3.0.4"
 
 group :development do
   gem "shotgun",        "~> 0.8"
-  gem "thin",           "~> 1.2.7"
+  gem "mongrel",        "1.2.0.pre2"
   gem "awesome_print",  :require => "ap"
   gem "autotest",       "~> 4.4.6"
   gem "autotest-growl", "~> 0.2.9"
+  gem "thor",           "~> 0.14.6"
 end
 
 group :test do
