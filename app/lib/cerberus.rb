@@ -60,6 +60,6 @@ module Cerberus
   end
 
   def glock
-    @glock ||= Redis::Lock.new('cerberus_lock', :expiration => 0, :timeout => 0.1)
+    @glock ||= Redis::Lock.new('cerberus_lock', :expiration => 0, :timeout => 2)
   end
 end

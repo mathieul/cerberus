@@ -10,6 +10,7 @@ require "thor"
 require "thor/actions"
 require 'base64'
 require "useful_stuff"
+require "awesome_print"
 
 class CerberusMgr < Thor
   include Thor::Actions
@@ -21,6 +22,17 @@ class CerberusMgr < Thor
   def basic_auth(user, password)
     puts "Header to add to your HTTP requests: "
     p encode_basic(user, password)
+  end
+
+  desc "lock_status [REFRESH_RATE]", "Show the number of free locks and used locks, and refresh if REFRESH_RATE (in secs) provided."
+  def lock_status(refresh_rate = nil)
+    UsefulStuff.setup
+    loop do
+      system("clear")
+      ap Cerberus.lock_status
+      break if refresh_rate.nil?
+      sleep refresh_rate.to_f
+    end
   end
 
   private
