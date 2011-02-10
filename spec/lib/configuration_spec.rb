@@ -46,9 +46,9 @@ describe UsefulStuff do
   end
 
   describe "Redis connection" do
-    it "connects to Redis with #setup" do
+    it "initializes Cerberus with #setup" do
       UsefulStuff.setup
-      UsefulStuff.redis.client.should be_connected
+      Cerberus.redis.client.should be_connected
     end
   end
 end

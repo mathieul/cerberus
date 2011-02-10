@@ -12,21 +12,12 @@ module UsefulStuff
     configure do |config|
       config.from_hash(YAML.load(File.read(config_file))[env])
     end
+    Cerberus.setup(configuration)
   end
 
   def configure(&block)
     raise ArgumentError.new("block missing") unless block_given?
     yield @configuration
-  end
-
-  def redis
-    return @redis if @redis.present?
-    c = self.configuration
-    @redis = Redis.new(:host         => c.redis_host,
-                       :port         => c.redis_port,
-                       :thread_safe  => c.thread_safe)
-    @redis.select(c.redis_db)
-    @redis
   end
 
   Error                 = Class.new(Exception)
