@@ -9,6 +9,7 @@ feature "Throttle API access" do
   end
 
   scenario "scaffold, replace me :D" do
+    pending
     auth_get "/api/v1/data_sources"
     last_response.status.should == 200
     last_response_from_json.should == {"data_source" => {"name" => "whatever", "blah" => "yes"}}

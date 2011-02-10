@@ -35,13 +35,34 @@ describe Cerberus do
       Cerberus.max_concurrent_access = 1
       Cerberus.take_lock.should == "LOCK#001"
       Cerberus.take_lock.should be_nil
+      Cerberus.redis.lrange(Cerberus::KEY_NAME_FREE_LOCKS, 0, -1).should be_empty
+      Cerberus.redis.lrange(Cerberus::KEY_NAME_USED_LOCKS, 0, -1).should == ["LOCK#001"]
     end
 
     it "can return a used lock with #release_lock" do
       Cerberus.max_concurrent_access = 1
       Cerberus.take_lock.should == "LOCK#001"
       Cerberus.release_lock("LOCK#001").should be_true
+      Cerberus.redis.lrange(Cerberus::KEY_NAME_USED_LOCKS, 0, -1).should be_empty
+      Cerberus.redis.lrange(Cerberus::KEY_NAME_FREE_LOCKS, 0, -1).should == ["LOCK#001"]
+    end
+
+    it "raises an error if returning a lock that's not currently used" do
+      Cerberus.max_concurrent_access = 1
       Cerberus.take_lock.should == "LOCK#001"
+      Cerberus.release_lock("LOCK#001")
+      lambda {
+        Cerberus.release_lock("LOCK#001")
+      }.should raise_error(Cerberus::ReleaseLockImpossible)
+    end
+
+    it "raises an error if trying to release a blank lock" do
+      lambda {
+        Cerberus.release_lock(nil)
+      }.should raise_error(Cerberus::ReleaseLockImpossible)
+      lambda {
+        Cerberus.release_lock("")
+      }.should raise_error(Cerberus::ReleaseLockImpossible)
     end
 
     it "returns the number of available and used locks with #lock_status" do

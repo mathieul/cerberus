@@ -2,6 +2,10 @@ require 'redis/lock'
 
 module Cerberus
   extend self
+
+  Error                 = Class.new(Exception)
+  ReleaseLockImpossible = Class.new(Error)
+
   attr_reader :redis, :max_concurrent_access
 
   KEY_NAME_FREE_LOCKS = "global:list:freelocks"
@@ -30,16 +34,19 @@ module Cerberus
     lock = nil
     glock.lock do
       key_name, lock = @redis.brpop(KEY_NAME_FREE_LOCKS, 1)
-      @redis.lpush(KEY_NAME_USED_LOCKS, lock)
+      @redis.lpush(KEY_NAME_USED_LOCKS, lock) unless lock.blank?
     end
     lock
   end
 
   def release_lock(lock)
+    raise ReleaseLockImpossible.new("lock #{lock} is not used") if lock.blank?
+    removed = 0
     glock.lock do
-      @redis.lrem(KEY_NAME_USED_LOCKS, 1, lock)
-      @redis.lpush(KEY_NAME_FREE_LOCKS, lock)
+      removed = @redis.lrem(KEY_NAME_USED_LOCKS, 1, lock)
+      @redis.lpush(KEY_NAME_FREE_LOCKS, lock) if removed == 1
     end
+    raise ReleaseLockImpossible.new("lock #{lock} is not used") if removed == 0
     true
   end
 

@@ -7,5 +7,6 @@ Bundler.setup :default, :runtime
 
 require "useful_stuff"
 UsefulStuff.setup
+Cerberus.max_concurrent_access = 2
 
 run UsefulStuff::Api
