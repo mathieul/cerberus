@@ -24,11 +24,19 @@ class CerberusMgr < Thor
     p encode_basic(user, password)
   end
 
+  desc "set_max_concurrent_access NUM_LOCKS", "Set the maximum number of concurent access."
+  def set_max_concurrent_access(num_locks)
+    num_locks = num_locks.to_i
+    UsefulStuff.setup
+    Cerberus.max_concurrent_access = num_locks
+    puts "Access now restricted to #{num_locks} concurrent access."
+  end
+
   desc "lock_status [REFRESH_RATE]", "Show the number of free locks and used locks, and refresh if REFRESH_RATE (in secs) provided."
   def lock_status(refresh_rate = nil)
     UsefulStuff.setup
     loop do
-      system("clear")
+      system("clear") unless refresh_rate.nil?
       ap Cerberus.lock_status
       break if refresh_rate.nil?
       sleep refresh_rate.to_f
