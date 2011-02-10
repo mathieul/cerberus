@@ -31,6 +31,9 @@ Use httperf.
     "Authorization: Basic eW91cl91c2VyOnlvdXJfcGFzc3dvcmQ=\n"
 
     $ bundle exec rackup -s mongrel
+    or to avoid logging slowing down the server
+    $ bundle exec rackup -s mongrel >/dev/null 2>&1
+
     $ httperf --hog --server 127.0.0.1 --port 9292 \
         --add-header "Authorization: Basic eW91cl91c2VyOnlvdXJfcGFzc3dvcmQ=\n" \
         --uri /api/v1/data_sources --wsess=100,1,0 --rate 5 --timeout=5
