@@ -1,0 +1,2 @@
+module Cerberus
+end

@@ -1,0 +1,22 @@
+---
+base: &common
+  redis_host: 127.0.0.1
+  redis_port: 6379
+  redis_db: 0
+  env: none
+
+development:
+  <<: *common
+  redis_db: 0
+  env: development
+
+test:
+  <<: *common
+  redis_db: 1
+  env: test
+
+production:
+  <<: *common
+  redis_db: 2
+  env: production
+
