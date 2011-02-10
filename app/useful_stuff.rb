@@ -1,13 +1,7 @@
 $LOAD_PATH.unshift File.dirname(__FILE__)
 
-require 'lib/cerberus'
-
-module UsefulStuff
-  extend self
-
-  def setup
-    # TODO
-  end
-end
-
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/object/blank"
+require "lib/cerberus"
+require "lib/configuration"
 require 'api/api'

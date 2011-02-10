@@ -8,6 +8,7 @@ Bundler.setup :default, :test
 ENV['RACK_ENV'] ||= "test"
 
 require "ap"
+require "useful_stuff"
 
 RSpec.configure do |config|
   config.before(:all)  { UsefulStuff.setup }

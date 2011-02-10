@@ -2,6 +2,8 @@ source :rubygems
 
 gem "grape",            "~> 0.1.3"
 gem "redis",            "~> 2.1.1"
+gem "redis-objects",    "~> 0.5.0"
+gem "activesupport",    "~> 3.0.4"
 
 group :development do
   gem "shotgun",        "~> 0.8"
