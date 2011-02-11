@@ -9,13 +9,14 @@ module Cerberus
   attr_reader :redis, :max_concurrent_access
 
   KEY_NAME_FREE_LOCKS = "global:list:freelocks"
-  KEY_NAME_USED_LOCKS = "global:list:usedlocks"
+  KEY_NAME_NUM_LOCKS = "global:value:numlocks"
 
-  def setup(c = {})
+  def setup(c)
     return @redis if @redis.present?
     @redis = Redis.new(:host         => c.redis_host,
                        :port         => c.redis_port,
                        :thread_safe  => c.thread_safe)
+    cfg = c.instance_eval { @options }
     @redis.select(c.redis_db || 0)
     $redis = @redis
     @redis
@@ -23,42 +24,31 @@ module Cerberus
 
   def max_concurrent_access=(value)
     @redis.multi
+    @redis.set(KEY_NAME_NUM_LOCKS, value)
     @redis.del(KEY_NAME_FREE_LOCKS)
-    @redis.del(KEY_NAME_USED_LOCKS)
     value.times { |i| @redis.lpush(KEY_NAME_FREE_LOCKS, lock_name(i)) }
     @redis.exec
     @max_concurrent_access = value
   end
 
   def take_lock
-    lock = nil
-    glock.lock do
-      key_name, lock = @redis.brpop(KEY_NAME_FREE_LOCKS, 1)
-      @redis.lpush(KEY_NAME_USED_LOCKS, lock) unless lock.blank?
-    end
-    lock
-  rescue Redis::Lock::LockTimeout
-    nil
+    @redis.rpop(KEY_NAME_FREE_LOCKS)
   end
 
   def release_lock(lock)
-    raise ReleaseLockImpossible.new("lock #{lock} is not used") if lock.blank?
-    removed = 0
-    glock.lock do
-      removed = @redis.lrem(KEY_NAME_USED_LOCKS, 1, lock)
-      @redis.lpush(KEY_NAME_FREE_LOCKS, lock) if removed == 1
-    end
-    raise ReleaseLockImpossible.new("lock #{lock} is not used") if removed == 0
+    raise ReleaseLockImpossible.new("lock is invalid") if lock.blank?
+    frees = @redis.lrange(KEY_NAME_FREE_LOCKS, 0, -1)
+    raise ReleaseLockImpossible.new("lock #{lock} is not used") if frees.include?(lock)
+    @redis.lpush(KEY_NAME_FREE_LOCKS, lock)
     true
-  #rescue Redis::Lock::LockTimeout
-    #false
   end
 
   def lock_status
     {}.tap do |status|
       glock.lock do
+        number = @redis.get(KEY_NAME_NUM_LOCKS).to_i
         status[:free] = @redis.llen(KEY_NAME_FREE_LOCKS)
-        status[:used] = @redis.llen(KEY_NAME_USED_LOCKS)
+        status[:used] = number - status[:free]
       end
     end
   end

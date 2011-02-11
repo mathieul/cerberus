@@ -6,10 +6,11 @@ gem "redis-objects",    "~> 0.5.0"
 gem "activesupport",    "~> 3.0.4"
 gem "rforce",           "~> 0.7"
 gem "awesome_print",  :require => "ap"
+gem "mongrel",        "1.2.0.pre2"
+#gem "passenger"
 
 group :development do
   gem "shotgun",        "~> 0.8"
-  gem "mongrel",        "1.2.0.pre2"
   gem "autotest",       "~> 4.4.6"
   gem "autotest-growl", "~> 0.2.9"
   gem "thor",           "~> 0.14.6"

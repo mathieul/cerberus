@@ -16,15 +16,21 @@ class UsefulStuff::Api < Grape::API
       begin
         lock = Cerberus.take_lock
         error!("Server busy, please try again later", 405) if lock.nil?
-        #if rand(3) == 0
-        if false
+        puts "LOCKED"
+        #unless rand(3) == 0
+        if true
+          sleep_time = rand(20).to_f / 10
+          puts "OK: sleep #{sleep_time}"
+          sleep sleep_time
           {:data_source => {:name => "whatever", :blah => "yes"}}
         else
-          sleep 5
-          error!("Request timed out after 5 seconds", 408)
+          puts "NOK"
+          sleep 3
+          error!("Request timed out after 3 seconds", 408)
         end
       ensure
         Cerberus.release_lock(lock) unless lock.nil?
+        puts "UNLOCKED" unless lock.nil?
       end
     end
   end

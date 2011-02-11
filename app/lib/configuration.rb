@@ -10,9 +10,10 @@ module UsefulStuff
     env = ENV['RACK_ENV'] || 'development'
     config_file = File.expand_path('../../../config.yml', __FILE__)
     configure do |config|
-      config.from_hash(YAML.load(File.read(config_file))[env])
+      hash = YAML.load(File.read(config_file))[env]
+      config.from_hash(hash)
     end
-    Cerberus.setup(configuration)
+    Cerberus.setup(@configuration)
   end
 
   def configure(&block)
