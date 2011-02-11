@@ -5,7 +5,7 @@
 To install and start AMMID:
 
     $ rvm use 1.9.2
-    $ rvm gemset cerberus
+    $ rvm gemset create cerberus
     $ rvm gemset use cerberus
     $ gem install bundler
     $ cd cerberus
