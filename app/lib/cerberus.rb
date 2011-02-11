@@ -10,16 +10,26 @@ module Cerberus
 
   KEY_NAME_FREE_LOCKS = "global:list:freelocks"
   KEY_NAME_NUM_LOCKS = "global:value:numlocks"
+  KEY_NAME_NEXT_SEQUENCE = "global:value:next_sequence"
 
-  def setup(c)
+  def setup(c = nil)
     return @redis if @redis.present?
-    @redis = Redis.new(:host         => c.redis_host,
-                       :port         => c.redis_port,
-                       :thread_safe  => c.thread_safe)
+    @redis = if c.nil?
+      Redis.new
+    else
+      Redis.new(:host         => c.redis_host,
+                :port         => c.redis_port,
+                :thread_safe  => c.thread_safe)
+    end
     cfg = c.instance_eval { @options }
     @redis.select(c.redis_db || 0)
+    @redis.set(KEY_NAME_NEXT_SEQUENCE, 1)
     $redis = @redis
     @redis
+  end
+
+  def next_sequence
+    @redis.incr(KEY_NAME_NEXT_SEQUENCE)
   end
 
   def max_concurrent_access=(value)

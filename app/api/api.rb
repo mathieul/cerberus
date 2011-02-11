@@ -13,24 +13,23 @@ class UsefulStuff::Api < Grape::API
 
   resource :data_sources do
     get do
+      req_id = Cerberus.next_sequence
       begin
         lock = Cerberus.take_lock
-        error!("Server busy, please try again later", 405) if lock.nil?
-        puts "LOCKED"
-        #unless rand(3) == 0
-        if true
-          sleep_time = rand(20).to_f / 10
-          puts "OK: sleep #{sleep_time}"
-          sleep sleep_time
-          {:data_source => {:name => "whatever", :blah => "yes"}}
-        else
-          puts "NOK"
-          sleep 3
-          error!("Request timed out after 3 seconds", 408)
+        if lock.nil?
+          puts "[% 3d] NO FREE LOCK" % req_id
+          error!("Server busy, please try again later", 405)
         end
+        puts "[% 3d] LOCKED" % req_id
+        sleep_time = rand(20).to_f / 10
+        puts "[% 3d] will process for #{sleep_time} s"
+        sleep sleep_time
+        {:data_source => {:name => "whatever", :blah => "yes"}}
       ensure
-        Cerberus.release_lock(lock) unless lock.nil?
-        puts "UNLOCKED" unless lock.nil?
+        unless lock.nil?
+          Cerberus.release_lock(lock)
+          puts "[% 3d] UNLOCKED" % req_id
+        end
       end
     end
   end

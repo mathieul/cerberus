@@ -17,9 +17,20 @@ describe Cerberus do
       $redis.should == Cerberus.redis
     end
 
+    it "initializes a global request sequence number with #setup" do
+      Cerberus.setup
+      Cerberus.next_sequence.should == 1
+      Cerberus.next_sequence.should == 2
+      Cerberus.next_sequence.should == 3
+    end
+
     it "sets the number of concurent requests with #max_concurrent_access=" do
       Cerberus.max_concurrent_access = 3
       Cerberus.max_concurrent_access.should == 3
+    end
+
+    it "sets user permissions with #set_user_permissions" do
+      Cerberus.set_user_permissions("mlajugie", :token => "")
     end
   end
 

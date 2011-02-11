@@ -24,15 +24,19 @@ RSpec options are stored inside *.rspec*. To run all the specs:
 
 # Load #
 
-Use httperf.
+Start the server:
+
+    $ bundle exec rackup -s mongrel 2>/dev/null
+
+    or to avoid logging slowing down the server
+
+    $ bundle exec rackup -s mongrel >/dev/null 2>&1
+
+Using httperf (normal usage, regular flow of requests):
 
     $ bin/cerberus_mgr.rb basic_auth your_user your_password
     Header to add to your HTTP requests: 
     "Authorization: Basic eW91cl91c2VyOnlvdXJfcGFzc3dvcmQ=\n"
-
-    $ bundle exec rackup -s mongrel
-    or to avoid logging slowing down the server
-    $ bundle exec rackup -s mongrel >/dev/null 2>&1
 
     $ httperf --hog --server 127.0.0.1 --port 9292 \
         --add-header "Authorization: Basic eW91cl91c2VyOnlvdXJfcGFzc3dvcmQ=\n" \
@@ -40,3 +44,7 @@ Use httperf.
     [...]
     Request rate: 5.0 req/s (198.0 ms/req)
     [...]
+
+Using ab (DOS attack):
+
+    $ ab -n 10000 -c 15 -A user:pass http://127.0.0.1:9292/api/v1/data_sources
