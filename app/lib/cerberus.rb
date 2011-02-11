@@ -37,6 +37,8 @@ module Cerberus
       @redis.lpush(KEY_NAME_USED_LOCKS, lock) unless lock.blank?
     end
     lock
+  rescue Redis::Lock::LockTimeout
+    nil
   end
 
   def release_lock(lock)
@@ -48,6 +50,8 @@ module Cerberus
     end
     raise ReleaseLockImpossible.new("lock #{lock} is not used") if removed == 0
     true
+  #rescue Redis::Lock::LockTimeout
+    #false
   end
 
   def lock_status
@@ -67,6 +71,6 @@ module Cerberus
   end
 
   def glock
-    @glock ||= Redis::Lock.new('cerberus_lock', :expiration => 0, :timeout => 2)
+    @glock ||= Redis::Lock.new('cerberus_lock', :expiration => 15, :timeout => 10)
   end
 end

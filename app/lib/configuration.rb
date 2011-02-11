@@ -31,7 +31,7 @@ module UsefulStuff
     end
 
     def from_hash(options)
-      @options = options.slice(*ATTRIBUTE_NAMES)
+      @options = options.symbolize_keys.slice(*ATTRIBUTE_NAMES)
     end
 
     private

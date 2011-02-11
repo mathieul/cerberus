@@ -16,7 +16,8 @@ class UsefulStuff::Api < Grape::API
       begin
         lock = Cerberus.take_lock
         error!("Server busy, please try again later", 405) if lock.nil?
-        if rand(3) == 0
+        #if rand(3) == 0
+        if false
           {:data_source => {:name => "whatever", :blah => "yes"}}
         else
           sleep 5
