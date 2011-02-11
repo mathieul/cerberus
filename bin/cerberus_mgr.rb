@@ -18,7 +18,7 @@ class CerberusMgr < Thor
   add_runtime_options!
   check_unknown_options!
 
-  desc "basic_auth USER PASSWORD", "Get the encoded basic authentication string for the user and password"
+  desc "basic_auth USER PASSWORD", "Get the encoded basic authentication string for the user and password."
   def basic_auth(user, password)
     puts "Header to add to your HTTP requests: "
     p encode_basic(user, password)
@@ -40,6 +40,34 @@ class CerberusMgr < Thor
       ap Cerberus.lock_status
       break if refresh_rate.nil?
       sleep refresh_rate.to_f
+    end
+  end
+
+  desc "set_user USER", "Set user permissions."
+  def set_user(name)
+    UsefulStuff.setup
+    say "Let's create a new user [#{name}]", :red
+    token = ask "What token should he use to access the API?"
+    per_minute = ask "How many requests should we accept per minute?"
+    say "Thanks."
+    id = Cerberus.set_user(name, :token => token, :per_minute => per_minute.to_i)
+    Cerberus.update_user(name, :id, id)
+    say "I created a new user:"
+    say "  - name: #{name}", :blue
+    say "  - id: #{id}", :blue
+    say "  - token: #{token}", :blue
+    say "  - per_minute: #{per_minute}", :blue
+  end
+
+  desc "show_user USER", "Show informations about user."
+  def show_user(name)
+    UsefulStuff.setup
+    info = Cerberus.get_user(name)
+    if info.nil?
+      say "Sorry, couldn't find user [#{name}]", :red
+    else
+      say "Information about user [#{name}]:", :blue
+      ap info
     end
   end
 

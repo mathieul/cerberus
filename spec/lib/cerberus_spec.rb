@@ -29,8 +29,22 @@ describe Cerberus do
       Cerberus.max_concurrent_access.should == 3
     end
 
-    it "sets user permissions with #set_user_permissions" do
-      Cerberus.set_user_permissions("mlajugie", :token => "")
+    it "sets user info with #set_user" do
+      id = Cerberus.set_user("mlajugie", :token => "asfsadfkj", :per_minute => 20)
+      id.should == 1
+    end
+
+    it "returns user info by name with #get_user" do
+      id = Cerberus.set_user("mlajugie", :token => "asfsadfkj", :per_minute => 20)
+      info = Cerberus.get_user("mlajugie")
+      info[:token].should == "asfsadfkj"
+      info[:per_minute].should == "20"
+    end
+
+    it "updates a field in user information with #update_user" do
+      id = Cerberus.set_user("mlajugie", :token => "asfsadfkj", :per_minute => 20)
+      Cerberus.update_user("mlajugie", "state", "disabled")
+      Cerberus.get_user("mlajugie")[:state].should == "disabled"
     end
   end
 

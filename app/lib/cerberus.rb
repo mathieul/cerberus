@@ -11,6 +11,9 @@ module Cerberus
   KEY_NAME_FREE_LOCKS = "global:list:freelocks"
   KEY_NAME_NUM_LOCKS = "global:value:numlocks"
   KEY_NAME_NEXT_SEQUENCE = "global:value:next_sequence"
+  KEY_NAME_USER_ID_SEQUENCE = "global:value:user_id_sequence"
+  KEY_NAME_USER_IDS_BY_NAME = "global:hash:user_ids_by_name"
+  KEY_NAME_USER_INFO_PREFIX = "global:hash:user_info_"
 
   def setup(c = nil)
     return @redis if @redis.present?
@@ -30,6 +33,31 @@ module Cerberus
 
   def next_sequence
     @redis.incr(KEY_NAME_NEXT_SEQUENCE)
+  end
+
+  def set_user(name, info)
+    id = @redis.incr(KEY_NAME_USER_ID_SEQUENCE)
+    @redis.multi
+    @redis.hset(KEY_NAME_USER_IDS_BY_NAME, name, id)
+    info_id = "#{KEY_NAME_USER_INFO_PREFIX}#{id}"
+    @redis.hmset(info_id, *info.to_a.flatten)
+    @redis.exec
+    id
+  end
+
+  def get_user(name)
+    id = @redis.hget(KEY_NAME_USER_IDS_BY_NAME, name).to_i
+    info_id = "#{KEY_NAME_USER_INFO_PREFIX}#{id}"
+    info = @redis.hgetall(info_id)
+    return nil if info.empty?
+    info.symbolize_keys
+  end
+
+  def update_user(name, field, value)
+    id = @redis.hget(KEY_NAME_USER_IDS_BY_NAME, name).to_i
+    raise RuntimeError.new("User not found") if id == 0
+    info_id = "#{KEY_NAME_USER_INFO_PREFIX}#{id}"
+    @redis.hset(info_id, field, value)
   end
 
   def max_concurrent_access=(value)

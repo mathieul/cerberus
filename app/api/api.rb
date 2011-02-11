@@ -7,8 +7,9 @@ class UsefulStuff::Api < Grape::API
   helpers do
   end
 
-  http_basic do |user_id, token|
-    true
+  http_basic do |user_name, token|
+    info = Cerberus.get_user(user_name)
+    info.present? && info[:token] == token
   end
 
   resource :data_sources do
