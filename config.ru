@@ -9,4 +9,5 @@ require "useful_stuff"
 UsefulStuff.setup
 Cerberus.max_concurrent_access = 2
 
+use Cerberus::Middleware
 run UsefulStuff::Api

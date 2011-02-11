@@ -14,7 +14,7 @@ To install and start AMMID:
 
 And to test it using curl:
 
-    $ curl -v -u user:token http://localhost:9393/api/v1/data_sources
+    $ curl -v -u user:token http://localhost:9393/api/v1/fakes.json
 
 # Specs #
 
@@ -40,11 +40,11 @@ Using httperf (normal usage, regular flow of requests):
 
     $ httperf --hog --server 127.0.0.1 --port 9292 \
         --add-header "Authorization: Basic eW91cl91c2VyOnlvdXJfcGFzc3dvcmQ=\n" \
-        --uri /api/v1/data_sources --wsess=100,1,0 --rate 5 --timeout=5
+        --uri /api/v1/fakes.json --wsess=100,1,0 --rate 5 --timeout=5
     [...]
     Request rate: 5.0 req/s (198.0 ms/req)
     [...]
 
 Using ab (DOS attack):
 
-    $ ab -n 10000 -c 15 -A user:pass http://127.0.0.1:9292/api/v1/data_sources
+    $ ab -n 10000 -c 15 -A user:pass http://127.0.0.1:9292/api/v1/fakes.json
