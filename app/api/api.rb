@@ -1,38 +1,12 @@
 require "grape"
+require "rforce"
 
 class UsefulStuff::Api < Grape::API
   prefix "api"
   version "v1"
 
   helpers do
-    def log(msg)
-      puts "[% 3d] #{msg}" % env["X_Request_Id"].to_i
-    end
-
-    def check_if_allowed(env)
-      info = user_info(env)
-      if new_request_allowed?(info)
-        new_request(info[:id], env["X_Request_Id"]) if info.present?
-      else
-        error!("You exceeded your maximum amount, try again in 1 minute", 403)
-      end
-    end
-
-    def user_info(env)
-      result = Rack::Auth::Basic::Request.new(env)
-      return nil unless result.provided?
-      name, pwd = result.credentials
-      Cerberus.get_user(name)
-    end
-
-    def new_request_allowed?(info)
-      num_requests = Cerberus.user_num_requests_last_minute(info[:id])
-      num_requests < info[:per_minute].to_i
-    end
-
-    def new_request(user_id, request_id)
-      Cerberus.add_user_request_id(user_id, request_id)
-    end
+    include UsefulStuff::Helpers
   end
 
   http_basic do |user_name, token|
@@ -51,6 +25,37 @@ class UsefulStuff::Api < Grape::API
       log "Fake processing will take #{sleep_time} s"
       sleep sleep_time
       [{:fake => {:name => "whatever", :blah => "yes", :processing => sleep_time}}]
+    end
+  end
+
+  resource :accounts do
+    get "/search/:name.json", "/search/:name" do
+      check_if_allowed(env)
+      sfdc = new_salesforce_binding
+      search = "find {#{params[:name]}} in name fields returning account(id, name, phone)"
+      puts "search => #{search.inspect}"
+      answer = sfdc.search(:searchString => search)
+      result = answer.searchResponse.result
+      error!("Account #{params[:name]} not found", 404) if result.nil?
+      result.searchRecords.record
+    end
+
+    post do
+      check_if_allowed(env)
+      sfdc = new_salesforce_binding
+      account = [
+        :type,        "Account",
+        :name,        params[:name],
+        :phone,       params[:phone],
+        :description, params[:description]
+      ]
+      answer = sfdc.create(:sObject => account)
+      result = answer.createResponse
+      if result.present?
+        answer.createResponse.result
+      else
+        error!(answer.Fault.faultstring, 406)
+      end
     end
   end
 end

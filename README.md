@@ -1,6 +1,6 @@
 # Cerberus #
 
-# Run #
+## Run ##
 
 To install and start AMMID:
 
@@ -16,13 +16,13 @@ And to test it using curl:
 
     $ curl -v -u user:token http://localhost:9393/api/v1/fakes.json
 
-# Specs #
+## Specs ##
 
 RSpec options are stored inside *.rspec*. To run all the specs:
 
     $ bundle exec rspec spec
 
-# Load #
+## Load ##
 
 Start the server:
 
@@ -48,3 +48,9 @@ Using httperf (normal usage, regular flow of requests):
 Using ab (DOS attack):
 
     $ ab -n 10000 -c 15 -A user:pass http://127.0.0.1:9292/api/v1/fakes.json
+
+## Salesforce ##
+
+    $ curl -v -u mathieul:asdf http://localhost:9292/api/v1/accounts/search/liveops.json
+
+    $ curl -v -u mathieul:asdf -d "name=Toto&phone=6501234455&type=prospect" http://localhost:9292/api/v1/accounts

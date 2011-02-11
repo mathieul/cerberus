@@ -6,8 +6,7 @@ gem "redis-objects",    "~> 0.5.0"
 gem "activesupport",    "~> 3.0.4"
 gem "rforce",           "~> 0.7"
 gem "awesome_print",  :require => "ap"
-gem "mongrel",        "1.2.0.pre2"
-#gem "passenger"
+gem "mongrel",          "1.2.0.pre2"
 
 group :development do
   gem "shotgun",        "~> 0.8"
