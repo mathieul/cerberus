@@ -17,6 +17,7 @@ module Cerberus
       def call!(env)
         @env = env
         before
+        @env["X_Request_Id"] = @req_id
         @app_response = @app.call(@env)
         after || @app_response
       rescue LocalError

@@ -48,6 +48,28 @@ describe Cerberus do
     end
   end
 
+  describe "limit per user" do
+    before(:each) do
+      @user_id = Cerberus.set_user("mlajugie", :token => "secret", :per_minute => 5)
+    end
+
+    it "returns the list of the request ids for the last sliding minute window with #user_latest_requests(:id)" do
+      request_ids = Cerberus.user_latest_requests(@user_id, :id)
+      request_ids.should == []
+    end
+
+    it "adds a user request to the list with #add_user_request_id" do
+      Cerberus.add_user_request_id(@user_id, 12)
+      Cerberus.add_user_request_id(@user_id, 42)
+      Cerberus.user_latest_requests(@user_id, :id).should =~ %w(12 42)
+    end
+
+    it "returns the number of requests made the last 60 seconds with #user_num_requests_last_minute" do
+      7.times { |i| Cerberus.add_user_request_id(@user_id, i) }
+      Cerberus.user_num_requests_last_minute(@user_id).should == 7
+    end
+  end
+
   describe "limit number of concurrent accesses" do
     it "can take a lock if there is at least one available with #take_lock" do
       Cerberus.max_concurrent_access = 3

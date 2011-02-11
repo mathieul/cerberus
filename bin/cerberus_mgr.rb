@@ -50,8 +50,8 @@ class CerberusMgr < Thor
     token = ask "What token should he use to access the API?"
     per_minute = ask "How many requests should we accept per minute?"
     say "Thanks."
-    id = Cerberus.set_user(name, :token => token, :per_minute => per_minute.to_i)
-    Cerberus.update_user(name, :id, id)
+    id = Cerberus.set_user(name, :token => token, :per_minute => per_minute.to_i,
+                                 :id => id, :name => name)
     say "I created a new user:"
     say "  - name: #{name}", :blue
     say "  - id: #{id}", :blue
@@ -67,7 +67,11 @@ class CerberusMgr < Thor
       say "Sorry, couldn't find user [#{name}]", :red
     else
       say "Information about user [#{name}]:", :blue
+      info[:num_requests_last_minute] = Cerberus.user_num_requests_last_minute(info[:id])
       ap info
+      list = Cerberus.user_latest_request_times(info[:id])
+      say "latest request times:", :green
+      ap list.sort
     end
   end
 

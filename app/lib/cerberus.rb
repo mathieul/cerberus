@@ -13,7 +13,10 @@ module Cerberus
   KEY_NAME_NEXT_SEQUENCE = "global:value:next_sequence"
   KEY_NAME_USER_ID_SEQUENCE = "global:value:user_id_sequence"
   KEY_NAME_USER_IDS_BY_NAME = "global:hash:user_ids_by_name"
-  KEY_NAME_USER_INFO_PREFIX = "global:hash:user_info_"
+  KEY_NAME_USER_IDS = "global:list:user_ids"
+  KEY_NAME_USER_INFO_PREFIX = "user:hash:user_info_"
+  KEY_NAME_USER_REQUESTS_PREFIX = "user:value:"
+  KEY_NAME_USER_REQUESTS_SUFFIX = ":request:"
 
   def setup(c = nil)
     return @redis if @redis.present?
@@ -38,6 +41,7 @@ module Cerberus
   def set_user(name, info)
     id = @redis.incr(KEY_NAME_USER_ID_SEQUENCE)
     @redis.multi
+    @redis.lpush(KEY_NAME_USER_IDS, id)
     @redis.hset(KEY_NAME_USER_IDS_BY_NAME, name, id)
     info_id = "#{KEY_NAME_USER_INFO_PREFIX}#{id}"
     @redis.hmset(info_id, *info.to_a.flatten)
@@ -47,10 +51,7 @@ module Cerberus
 
   def get_user(name)
     id = @redis.hget(KEY_NAME_USER_IDS_BY_NAME, name).to_i
-    info_id = "#{KEY_NAME_USER_INFO_PREFIX}#{id}"
-    info = @redis.hgetall(info_id)
-    return nil if info.empty?
-    info.symbolize_keys
+    get_user_info(id)
   end
 
   def update_user(name, field, value)
@@ -58,6 +59,36 @@ module Cerberus
     raise RuntimeError.new("User not found") if id == 0
     info_id = "#{KEY_NAME_USER_INFO_PREFIX}#{id}"
     @redis.hset(info_id, field, value)
+  end
+
+  def user_latest_requests(user_id, type = :id)
+    key_name = latest_request_ids_key_name(user_id)
+    mask = latest_request_ids_key_name(user_id, '')
+    re = Regexp.new("^#{mask}(.*)$")
+    keys = @redis.keys(key_name)
+    return keys if type == :key
+    keys.map do |name|
+      match = re.match(name)
+      match && match[1]
+    end
+  end
+
+  def user_latest_request_times(user_id)
+    keys = user_latest_requests(user_id, :key)
+    keys.map do |key_name|
+      @redis.get(key_name)
+    end
+  end
+
+  def add_user_request_id(user_id, request_id)
+    key_name = latest_request_ids_key_name(user_id, request_id)
+    @redis.set(key_name, Time.now.to_s)
+    @redis.expire(key_name, 60)
+  end
+
+  def user_num_requests_last_minute(user_id)
+    key_name = latest_request_ids_key_name(user_id)
+    @redis.keys(key_name).length
   end
 
   def max_concurrent_access=(value)
@@ -100,5 +131,21 @@ module Cerberus
 
   def glock
     @glock ||= Redis::Lock.new('cerberus_lock', :expiration => 15, :timeout => 10)
+  end
+
+  def get_user_info(id)
+    info_id = "#{KEY_NAME_USER_INFO_PREFIX}#{id}"
+    info = @redis.hgetall(info_id)
+    return nil if info.empty?
+    info.symbolize_keys
+  end
+
+  def setup_for_user(id)
+    info = get_user_info(id)
+    return false if info.nil?
+  end
+
+  def latest_request_ids_key_name(user_id, request_id = "*")
+    "#{KEY_NAME_USER_REQUESTS_PREFIX}#{user_id}#{KEY_NAME_USER_REQUESTS_SUFFIX}#{request_id}"
   end
 end
