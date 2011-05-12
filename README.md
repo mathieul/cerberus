@@ -1,5 +1,8 @@
 # Cerberus #
 
+WARNING: This library was hacked in one day, it is not anywhere ready to
+be used on production.
+
 ## Run ##
 
 To install and start AMMID:
